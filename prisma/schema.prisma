@@ -1,0 +1,103 @@
+datasource db {
+  provider = "mysql" // atau"postgresql", "sqlite", dll.
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Model untuk buku
+model Book {
+  id               String      @id @default(uuid())
+  kind             String
+  title            String
+  subtitle         String
+  aboutTheBook     String
+  author           Author      @relation(fields: [authorId], references: [id])
+  authorId         String
+  url              String?
+  readUrl          String?
+  readingDuration  Int?
+  minutesToRead    Int?
+  publishedAt      DateTime? @default(now())
+  readCount        Int?
+  averageRating    Float?
+  totalRatings     Int?
+  categories       BookCategory[]
+  images           Image[]
+  // reviews          Review[]
+  actions          BookAction[]
+}
+
+model BookAction {
+  id               String   @id @default(uuid())
+  orderNo          Int      // Nomor urutan tindakan dalam rangkuman
+  actionTitle      String?   // Judul tindakan atau bagian dalam rangkuman
+  content          String?   // content summerize book
+  quote            String?  // Kutipan terkait dengan tindakan
+
+  // Relation fields
+  book             Book     @relation(fields: [bookId], references: [id])
+  bookId           String   // ID buku yang terkait dengan tindakan
+}
+
+// Model untuk kategori
+model Category {
+  id       String         @id @default(uuid())
+  name     String
+  slug     String
+  books    BookCategory[]
+}
+
+// Tabel penghubung untuk many-to-many relationship antara Book dan Category
+model BookCategory {
+  id         String  @id @default(uuid())
+  bookId     String
+  categoryId String
+  book       Book    @relation(fields: [bookId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
+  
+  @@unique([bookId, categoryId])
+}
+
+// Model untuk penulis
+model Author {
+  id       String  @id @default(uuid())
+  name     String
+  bio      String?
+  books    Book[]
+}
+
+// Model untuk gambar buku
+model Image {
+  id        String   @id @default(uuid())
+  original  String?   // Path atau URL gambar asli
+  small     String?  // Path atau URL gambar kecil
+  medium    String?  // Path atau URL gambar sedang
+  large     String?  // Path atau URL gambar besar
+  bookId    String
+  book      Book?    @relation(fields: [bookId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+// Model untuk pengguna
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  // reviews  Review[]
+}
+
+// Model untuk ulasan
+// model Review {
+//   id       String   @id @default(uuid())
+//   rating   Int
+//   comment  String?
+//   bookId   String
+//   userId   String
+//   book     Book     @relation(fields: [bookId], references: [id])
+//   user     User     @relation(fields: [userId], references: [id])
+// }
